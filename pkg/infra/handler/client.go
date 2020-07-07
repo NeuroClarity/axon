@@ -7,6 +7,8 @@ import (
 
 	app "github.com/NeuroClarity/axon/pkg/application"
 	"github.com/NeuroClarity/axon/pkg/domain/repo"
+	"github.com/NeuroClarity/axon/pkg/infra/auth"
+	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -20,13 +22,15 @@ type ClientHandler interface {
 
 // clientHandler is internal implementation of ClientHandler.
 type clientHandler struct {
-	clientRepo repo.ClientRepository
-	studyRepo  repo.StudyRepository
+	clientRepo    repo.ClientRepository
+	studyRepo     repo.StudyRepository
+	authenticator *auth.Authenticator
+	sessionStore  *sessions.FilesystemStore
 }
 
 // NewClientHandler is a factory for a ClientHandler.
-func NewClientHandler(cr repo.ClientRepository, sr repo.StudyRepository) ClientHandler {
-	return &clientHandler{cr, sr}
+func NewClientHandler(cr repo.ClientRepository, sr repo.StudyRepository, auth *auth.Authenticator, session *sessions.FilesystemStore) ClientHandler {
+	return &clientHandler{cr, sr, auth, session}
 }
 
 // ClientRegister handles registering a Client with the database.
@@ -38,14 +42,6 @@ func (ch *clientHandler) ClientRegister(w http.ResponseWriter, r *http.Request) 
 // ClientRegister handles retrieving Client information from the database.
 func (ch *clientHandler) ClientLogin(w http.ResponseWriter, r *http.Request) {
 
-	rawCID := httprouter.ParamsFromContext(r.Context()).ByName("cid")
-	cid, err := strconv.Atoi(rawCID)
-	if err != nil {
-		// TODO
-	}
-
-	client := app.ClientLogin(cid)
-	fmt.Fprint(w, client)
 }
 
 // CreateStudy handles creating and persisting a new Study.

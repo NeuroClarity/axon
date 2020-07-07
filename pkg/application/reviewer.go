@@ -2,7 +2,10 @@ package app
 
 import "fmt"
 
-func ReviewerRegister() string {
+// RegisterReviewer creates a new Reviewer and persists.
+func RegisterReviewer() string {
+	// Reviewer factory
+	//
 	return "Reviewer Register. \n"
 }
 
