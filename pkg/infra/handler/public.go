@@ -3,6 +3,8 @@ package handler
 import (
 	"fmt"
 	"net/http"
+
+	app "github.com/NeuroClarity/axon/pkg/application"
 )
 
 // PublicHandler routes non-authenticated API requests.
@@ -21,5 +23,6 @@ func NewPublicHandler() PublicHandler {
 
 // Ping is a quick way to see if our API works.
 func (ph *publicHandler) Ping(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Success. \n")
+	ping := app.Ping()
+	fmt.Fprint(w, ping)
 }

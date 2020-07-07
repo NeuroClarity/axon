@@ -3,7 +3,9 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
+	app "github.com/NeuroClarity/axon/pkg/application"
 	"github.com/NeuroClarity/axon/pkg/domain/repo"
 	"github.com/julienschmidt/httprouter"
 )
@@ -28,14 +30,31 @@ func NewReviewerHandler(rr repo.ReviewerRepository, rjr repo.ReviewJobRepository
 
 // ReviewerRegister handles registering a Reviewer with the database.
 func (rh *reviewerHandler) ReviewerRegister(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Reviewer Register. \n")
+	reviewer := app.ReviewerRegister()
+	fmt.Fprint(w, reviewer)
 }
 
 // ReviewerLogin handles retrieving Reviewer information from the database.
 func (rh *reviewerHandler) ReviewerLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Reviewer Login uid: %s.\n", httprouter.ParamsFromContext(r.Context()).ByName("uid"))
+
+	rawUID := httprouter.ParamsFromContext(r.Context()).ByName("uid")
+	uid, err := strconv.Atoi(rawUID)
+	if err != nil {
+		// TODO
+	}
+
+	reviewer := app.ReviewerLogin(uid)
+	fmt.Fprint(w, reviewer)
 }
 
+// AssignReviewJob retrieves a ReviewJob for a User based on Demographics and BioHardware criteria.
 func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Assigning ReviewJob to %s. \n", httprouter.ParamsFromContext(r.Context()).ByName("uid"))
+	rawUID := httprouter.ParamsFromContext(r.Context()).ByName("uid")
+	uid, err := strconv.Atoi(rawUID)
+	if err != nil {
+		// TODO
+	}
+
+	reviewer := app.AssignReviewJob(uid)
+	fmt.Fprint(w, reviewer)
 }
