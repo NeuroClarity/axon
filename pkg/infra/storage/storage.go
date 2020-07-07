@@ -28,8 +28,8 @@ type storage struct {
   client    *s3.S3
 }
 
-const VIDEO_BUCKET = "client-video-content"
-const RAW_DATA_BUCKET = "reviewer-raw-data"
+const VIDEO_BUCKET = "nc-client-video-content"
+const RAW_DATA_BUCKET = "nc-reviewer-raw-data"
 
 // key should be of the format <Type(eye-tracking/eeg)>/<username>/<video-id>
 func (repo storage) StoreBioMetricData(key, data string) error {

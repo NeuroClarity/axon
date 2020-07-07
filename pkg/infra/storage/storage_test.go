@@ -10,9 +10,10 @@ import (
 
 func TestGetSignedVideoUrl(t *testing.T) {
   storageClient, _ := NewStorage("us-west-1")
-  url, err := storageClient.GetVideoUrl("testing/test-github-screenshot", time.Duration(30))
+  url, err := storageClient.GetVideoUrl("dev-testing/sample-screenshot", time.Duration(30))
   if err != nil {
     t.Errorf(fmt.Sprintf("%s", err))
+    return
   }
 
   fmt.Println(url)
@@ -25,6 +26,7 @@ func TestUploadBioMetricData(t *testing.T) {
   err := storageClient.StoreBioMetricData("testing/random-text", data)
   if err != nil {
     t.Errorf(fmt.Sprintf("Error uploading data: %s", err))
+    return
   }
   return
 }
