@@ -22,12 +22,9 @@ func main() {
 	router := httprouter.New()
 
 	// Service singletons.
-
 	authenticator, err := auth.NewAuthenticator()
 	if err != nil {
-		//TODO log implementing writer
-		// http.Error(_, err.Error(), http.StatusInternalServerError)
-		return
+		log.Fatal(err.Error())
 	}
 	sessionStore := sessions.NewFilesystemStore("", []byte("FOO"))
 	db := database.NewDatabase("foo", "foo")

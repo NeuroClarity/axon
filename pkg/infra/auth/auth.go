@@ -19,8 +19,7 @@ func NewAuthenticator() (*Authenticator, error) {
 
 	provider, err := oidc.NewProvider(ctx, "https://dev-q7h0r088.us.auth0.com/")
 	if err != nil {
-		// TODO: logging format
-		log.Printf("failed to get provide: %v", err)
+		log.Printf("Failed to get Auth0 provider: %v.\n", err)
 		return nil, err
 	}
 

@@ -45,25 +45,29 @@ func (rh *reviewerHandler) ReviewerCallback(w http.ResponseWriter, r *http.Reque
 
 	session, err := rh.sessionStore.Get(r, "auth-session")
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if r.URL.Query().Get("state") != session.Values["state"] {
+		log.Print("Request URL state parameter does not match local session state.\n")
 		http.Error(w, "Invalid state parameter", http.StatusBadRequest)
 		return
 	}
 
 	token, err := rh.authenticator.Config.Exchange(context.TODO(), r.URL.Query().Get("code"))
 	if err != nil {
-		log.Printf("No token found: %v.", err)
+		log.Print(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	rawIDToken, ok := token.Extra("id_token").(string)
 	if !ok {
+		log.Print("OAuth2 Token did not have id_token field (their service at fault).\n")
 		http.Error(w, "No id_token field in oauth2 token.", http.StatusInternalServerError)
+		return
 	}
 
 	oidcConfig := &oidc.Config{
@@ -72,6 +76,7 @@ func (rh *reviewerHandler) ReviewerCallback(w http.ResponseWriter, r *http.Reque
 
 	idToken, err := rh.authenticator.Provider.Verifier(oidcConfig).Verify(context.TODO(), rawIDToken)
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, "Failed to verify ID Token: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -79,6 +84,7 @@ func (rh *reviewerHandler) ReviewerCallback(w http.ResponseWriter, r *http.Reque
 	// User profile information retrieval.
 	var profile map[string]interface{}
 	if err := idToken.Claims(&profile); err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -91,6 +97,7 @@ func (rh *reviewerHandler) ReviewerCallback(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	log.Printf("Registry with session profile: %+v\n", session.Values["profile"])
 	http.Redirect(w, r, "/api/reviewer/profile", http.StatusSeeOther)
 }
 
@@ -99,10 +106,12 @@ func (rh *reviewerHandler) ReviewerProfile(w http.ResponseWriter, r *http.Reques
 
 	session, err := rh.sessionStore.Get(r, "auth-session")
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// Temp obviously.
 	fmt.Fprintf(w, "user: %+v", session.Values["profile"])
 }
 
@@ -113,6 +122,7 @@ func (rh *reviewerHandler) ReviewerLogin(w http.ResponseWriter, r *http.Request)
 	b := make([]byte, 32)
 	_, err := rand.Read(b)
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -120,6 +130,7 @@ func (rh *reviewerHandler) ReviewerLogin(w http.ResponseWriter, r *http.Request)
 	state := base64.StdEncoding.EncodeToString(b)
 	session, err := rh.sessionStore.Get(r, "auth-session")
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -127,6 +138,7 @@ func (rh *reviewerHandler) ReviewerLogin(w http.ResponseWriter, r *http.Request)
 	session.Values["state"] = state
 	err = session.Save(r, w)
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -141,6 +153,7 @@ func (rh *reviewerHandler) ReviewerLogout(w http.ResponseWriter, r *http.Request
 
 	logoutURL, err := url.Parse("https://" + domain)
 	if err != nil {
+		log.Print(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
