@@ -13,6 +13,7 @@ import (
 	"github.com/NeuroClarity/axon/pkg/infra/auth"
 	"github.com/NeuroClarity/axon/pkg/infra/database"
 	"github.com/NeuroClarity/axon/pkg/infra/handler"
+	"github.com/NeuroClarity/axon/pkg/infra/middleware"
 )
 
 func main() {
@@ -42,13 +43,16 @@ func main() {
 
 	// Public routes.
 	router.HandlerFunc("GET", "/api/ping", publicHandler.Ping)
+	router.HandlerFunc("GET", "/api/permissions", publicHandler.Permissions)
 
 	// Reviewer routes.
-	router.HandlerFunc("GET", "/api/reviewer", reviewerHandler.ReviewerProfile)
 	router.HandlerFunc("GET", "/api/reviewer/callback", reviewerHandler.ReviewerCallback)
 	router.HandlerFunc("GET", "/api/reviewer/login", reviewerHandler.ReviewerLogin)
 	router.HandlerFunc("GET", "/api/reviewer/logout", reviewerHandler.ReviewerLogout)
-	router.HandlerFunc("GET", "/api/assign/:uid", reviewerHandler.AssignReviewJob)
+
+	router.HandlerFunc("GET", "/api/reviewer/ping", middleware.Authenticate(publicHandler.Ping, sessionStore))
+	router.HandlerFunc("GET", "/api/reviewer/profile", middleware.Authenticate(reviewerHandler.ReviewerProfile, sessionStore))
+	router.HandlerFunc("GET", "/api/assign/:uid", middleware.Authenticate(reviewerHandler.AssignReviewJob, sessionStore))
 
 	// Client routes.
 	router.HandlerFunc("GET", "/api/client", clientHandler.ClientRegister)

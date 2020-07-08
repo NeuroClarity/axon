@@ -91,7 +91,7 @@ func (rh *reviewerHandler) ReviewerCallback(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	http.Redirect(w, r, "/api/reviewer", http.StatusSeeOther)
+	http.Redirect(w, r, "/api/reviewer/profile", http.StatusSeeOther)
 }
 
 // ReviewerProfile retrieves profile information for a logged in Reviewer
@@ -103,7 +103,7 @@ func (rh *reviewerHandler) ReviewerProfile(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fmt.Fprint(w, "user: %s", session.Values["profile"])
+	fmt.Fprintf(w, "user: %+v", session.Values["profile"])
 }
 
 // ReviewerLogin handles retrieving Reviewer information from the database.
