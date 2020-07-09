@@ -1,22 +1,22 @@
 package repo
 
 import (
-	"github.com/NeuroClarity/axon/pkg/application/gateway"
 	"github.com/NeuroClarity/axon/pkg/domain/core"
+	"github.com/NeuroClarity/axon/pkg/domain/gateway"
 )
 
 type ReviewJobRepository interface {
-	GetReviewJob() core.ReviewJob
+	GetReviewJob() (core.ReviewJob, error)
 }
 
 func NewReviewJobRepository(database gateway.Database) ReviewJobRepository {
-	return reviewJobRepository{database}
+	return &reviewJobRepository{database}
 }
 
 type reviewJobRepository struct {
 	database gateway.Database
 }
 
-func (repo reviewJobRepository) GetReviewJob() core.ReviewJob {
+func (repo *reviewJobRepository) GetReviewJob() (core.ReviewJob, error) {
 	return repo.database.GetReviewJob()
 }

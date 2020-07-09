@@ -1,8 +1,6 @@
 package queue
 
 import (
-  "fmt"
-  "encoding/json"
   //"github.com/NeuroClarity/axon/pkg/domain/gateway"
   "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,16 +16,28 @@ type queue struct {
   client   *sqs.SQS
 }
 
-func (repo queue) PublishEegData(data string) error {
-  return publishDataToQueue( , data)
+const eegDataQueueUrl = "https://sqs.us-west-1.amazonaws.com/471943556279/nc-eeg-data"
+const eyeDataQueueUrl = "https://sqs.us-west-1.amazonaws.com/471943556279/nc-eye-tracking-data"
+
+func (repo queue) PublishEegDataKey(key string) error {
+  return repo.publishToQueue(eegDataQueueUrl, key)
 }
 
-func (repo queue) PublishEyeTrackingData(data string) error {
-  return publishDataToQueue( , data)
+func (repo queue) PublishEyeTrackingDataKey(key string) error {
+  return repo.publishToQueue(eyeDataQueueUrl, key)
 }
 
-func (repo queue) publishDataToQueue(url, data string) error {
-  message := sqs.SendMessageInput{
-    MessageBody: aws.String("message body")
-  }
+func (repo queue) publishToQueue(url, data string) error {
+  _, err := repo.client.SendMessage(&sqs.SendMessageInput{
+    MessageAttributes: map[string]*sqs.MessageAttributeValue{
+      "Key": &sqs.MessageAttributeValue{
+        DataType:     aws.String("String"),
+        StringValue:  aws.String(data),
+      },
+    },
+    MessageBody: aws.String("S3 Key"),
+    QueueUrl: &url,
+  })
+
+  return err
 }

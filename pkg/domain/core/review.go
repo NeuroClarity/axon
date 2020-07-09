@@ -4,9 +4,9 @@ package core
 type Review struct {
 	Reviewer Reviewer
 	Insight  Insight
-	Hardware Hardware
+	Hardware BiometricHardware
 }
 
 // TODO: NewReview is a factory for a finished Review.
-func NewReview(reviewer Reviewer, insight Insight, hardware Hardware) {
+func NewReview(reviewer Reviewer, insight Insight, hardware BiometricHardware) {
 }

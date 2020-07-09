@@ -19,4 +19,5 @@ func Priority() int {
 func Complete(biometric BioMetric) *Review {
 	// generate insight from biometric
 	// Make Review from insight, reviewer, hardware
+	return &Review{}
 }
