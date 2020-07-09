@@ -2,12 +2,10 @@ package core
 
 // A Reviewer is a person who participates in studies by watching videos and providing biometric data.
 type Reviewer struct {
-	UID          int
+	RID          int
 	Username     string
 	FirstName    string
 	LastName     string
-	Password     string
-	Token        string
 	Email        string
 	Demographics Demographics
 }

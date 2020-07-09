@@ -29,14 +29,14 @@ func (repo database) GetReviewJob() (core.ReviewJob, error) {
 	return core.ReviewJob{}, nil
 }
 
-func (repo database) NewClient(name string) (int, error) {
+func (repo database) NewCreator(name string) (int, error) {
 	// database logic
 	return 0, nil
 }
 
-func (repo database) GetClient() (*core.Client, error) {
+func (repo database) GetCreator() (*core.Creator, error) {
 	// database logic
-	return &core.Client{}, nil
+	return &core.Creator{}, nil
 }
 
 func (repo database) GetStudy() (*core.Study, error) {

@@ -6,11 +6,11 @@ type Study struct {
 	Demographics    Demographics
 	Reviews         []Review
 	ReviewJobs      []ReviewJob
-	Client          Client
+	Client          Creator
 	Content         Content
 }
 
 // TODO: Factory pattern... What goes into making a new study
-func NewStudy(numParticipants int, demographics Demographics, client Client, content Content) *Study {
+func NewStudy(numParticipants int, demographics Demographics, client Creator, content Content) *Study {
 	return &Study{NumParticipants: numParticipants, Demographics: demographics}
 }

@@ -2,60 +2,49 @@
 package main
 
 import (
-	"encoding/gob"
-	"log"
 	"net/http"
 
-	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/NeuroClarity/axon/pkg/domain/repo"
-	"github.com/NeuroClarity/axon/pkg/infra/auth"
 	"github.com/NeuroClarity/axon/pkg/infra/database"
 	"github.com/NeuroClarity/axon/pkg/infra/handler"
 	"github.com/NeuroClarity/axon/pkg/infra/middleware"
+	"github.com/rs/cors"
 )
 
 func main() {
 
-	gob.Register(map[string]interface{}{})
 	router := httprouter.New()
 
-	// Service singletons.
-	authenticator, err := auth.NewAuthenticator()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	sessionStore := sessions.NewFilesystemStore("", []byte("FOO"))
+	// Service and middleware singletons.
 	db := database.NewDatabase("foo", "foo")
 	reviewRepo := repo.NewReviewerRepository(db)
 	reviewJobRepo := repo.NewReviewJobRepository(db)
-	clientRepo := repo.NewClientRepository(db)
+	creatorRepo := repo.NewCreatorRepository(db)
 	studyRepo := repo.NewStudyRepository(db)
+	jwtMiddleware := middleware.NewJWTMiddleware()
 
 	// Dependency injection.
 	publicHandler := handler.NewPublicHandler()
-	reviewerHandler := handler.NewReviewerHandler(reviewRepo, reviewJobRepo, authenticator, sessionStore)
-	clientHandler := handler.NewClientHandler(clientRepo, studyRepo, authenticator, sessionStore)
+	reviewerHandler := handler.NewReviewerHandler(reviewRepo, reviewJobRepo)
+	creatorHandler := handler.NewCreatorHandler(creatorRepo, studyRepo)
 
 	// Public routes.
 	router.HandlerFunc("GET", "/api/ping", publicHandler.Ping)
 	router.HandlerFunc("GET", "/api/permissions", publicHandler.Permissions)
 
 	// Reviewer routes.
-	router.HandlerFunc("GET", "/api/reviewer/callback", reviewerHandler.ReviewerCallback)
-	router.HandlerFunc("GET", "/api/reviewer/login", reviewerHandler.ReviewerLogin)
-	router.HandlerFunc("GET", "/api/reviewer/logout", reviewerHandler.ReviewerLogout)
+	router.Handler("GET", "/api/reviewer/ping", jwtMiddleware.Handler(http.HandlerFunc(publicHandler.Ping)))
+	router.Handler("GET", "/api/reviewer/profile", jwtMiddleware.Handler(http.HandlerFunc(reviewerHandler.Profile)))
 
-	router.HandlerFunc("GET", "/api/reviewer/ping", middleware.Authenticate(publicHandler.Ping, sessionStore))
-	router.HandlerFunc("GET", "/api/reviewer/profile", middleware.Authenticate(reviewerHandler.ReviewerProfile, sessionStore))
-	router.HandlerFunc("GET", "/api/assign/:uid", middleware.Authenticate(reviewerHandler.AssignReviewJob, sessionStore))
+	// Creator routes.
+	router.Handler("GET", "/api/study", jwtMiddleware.Handler(http.HandlerFunc(creatorHandler.CreateStudy)))
+	router.Handler("GET", "/api/study/:sid", jwtMiddleware.Handler(http.HandlerFunc(creatorHandler.ViewStudy)))
 
-	// Client routes.
-	router.HandlerFunc("GET", "/api/client", clientHandler.ClientRegister)
-	router.HandlerFunc("GET", "/api/client/:uid", clientHandler.ClientLogin)
-	router.HandlerFunc("GET", "/api/study", clientHandler.CreateStudy)
-	router.HandlerFunc("GET", "/api/study/:sid", clientHandler.ViewStudy)
-
-	log.Fatal(http.ListenAndServe(":8000", router))
+	corsWrapper := cors.New(cors.Options{
+		AllowedMethods: []string{"GET", "POST"},
+		AllowedHeaders: []string{"Content-Type", "Origin", "Accept", "*"},
+	})
+	http.ListenAndServe(":8000", corsWrapper.Handler(router))
 }
