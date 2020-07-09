@@ -11,15 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func NewStorage(region string) (*storage, error) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region)},
-	)
-  if err != nil {
-    errMsg := fmt.Sprintf("Error while creating a new AWS session, %s", err)
-    return nil, errors.New(errMsg)
-  }
-
+func NewStorage(sess *session.Session) (*storage, error) {
 	svc := s3.New(sess)
 	return &storage{client: svc}, nil
 }
