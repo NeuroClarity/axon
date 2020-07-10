@@ -21,22 +21,22 @@ func main() {
 	db := database.NewDatabase("foo", "foo")
 	reviewRepo := repo.NewReviewerRepository(db)
 	reviewJobRepo := repo.NewReviewJobRepository(db)
+	analyticsJobRepo := repo.NewAnalyticsJobRepository(db)
 	creatorRepo := repo.NewCreatorRepository(db)
 	studyRepo := repo.NewStudyRepository(db)
 	jwtMiddleware := middleware.NewJWTMiddleware()
 
 	// Dependency injection.
 	publicHandler := handler.NewPublicHandler()
-	reviewerHandler := handler.NewReviewerHandler(reviewRepo, reviewJobRepo)
+	reviewerHandler := handler.NewReviewerHandler(reviewRepo, reviewJobRepo, analyticsJobRepo)
 	creatorHandler := handler.NewCreatorHandler(creatorRepo, studyRepo)
 
 	// Public routes.
 	router.HandlerFunc("GET", "/api/ping", publicHandler.Ping)
-	router.HandlerFunc("GET", "/api/permissions", publicHandler.Permissions)
 
 	// Reviewer routes.
-	router.Handler("GET", "/api/reviewer/ping", jwtMiddleware.Handler(http.HandlerFunc(publicHandler.Ping)))
-	router.Handler("GET", "/api/reviewer/profile", jwtMiddleware.Handler(http.HandlerFunc(reviewerHandler.Profile)))
+	router.Handler("GET", "/api/reviewer/ping", jwtMiddleware.Handler(http.HandlerFunc(reviewerHandler.Ping)))
+	router.Handler("GET", "/api/reviewer/reviewJob", jwtMiddleware.Handler(http.HandlerFunc(reviewerHandler.AssignReviewJob)))
 
 	// Creator routes.
 	router.Handler("GET", "/api/study", jwtMiddleware.Handler(http.HandlerFunc(creatorHandler.CreateStudy)))

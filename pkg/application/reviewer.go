@@ -1,18 +1,16 @@
 package app
 
-import "fmt"
+import (
+	"github.com/NeuroClarity/axon/pkg/domain/core"
+	"github.com/NeuroClarity/axon/pkg/domain/repo"
+)
 
-// RegisterReviewer creates a new Reviewer and persists.
-func RegisterReviewer() string {
-	// Reviewer factory
-	//
-	return "Reviewer Register. \n"
+// AssignReviewJob retrieves a ReviewJob for a Reviewer.
+func AssignReviewJob(reviewer *core.Reviewer, rjRepo repo.ReviewJobRepository) (core.ReviewJob, error) {
+	return rjRepo.GetReviewJob(reviewer.Demographics)
 }
 
-func ReviewerLogin(uid int) string {
-	return fmt.Sprintf("Reviewer Login uid: %d.\n", uid)
-}
-
-func AssignReviewJob(uid int) string {
-	return fmt.Sprintf("Assigning ReviewJob to %d. \n", uid)
+// SubmitAnalyticsJob turns a ReviewJob into an AnalyticsJob to process into Insights.
+func SubmitAnalyticsJob(reviewJob core.ReviewJob, biometrics *core.Biometrics, ajRepo repo.AnalyticsJobRepository) error {
+	return ajRepo.NewAnalyticsJob(reviewJob, biometrics)
 }
