@@ -7,5 +7,8 @@ type BiometricHardware struct {
 type EEGHeadset struct {
 }
 
+type Emotiv struct {
+}
+
 type Webcam struct {
 }

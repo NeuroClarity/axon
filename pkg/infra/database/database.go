@@ -24,14 +24,13 @@ func (repo database) GetReviewer() (*core.Reviewer, error) {
 	return &core.Reviewer{}, nil
 }
 
-func (repo database) GetReviewJob() (core.ReviewJob, error) {
-	// database logic
-	return core.ReviewJob{}, nil
+func (repo database) NewReviewJob() error {
+	return nil
 }
 
-func (repo database) NewCreator(name string) (int, error) {
+func (repo database) GetReviewJob(age int, gender, race string) (core.ReviewJob, error) {
 	// database logic
-	return 0, nil
+	return core.ReviewJob{}, nil
 }
 
 func (repo database) GetCreator() (*core.Creator, error) {
@@ -42,4 +41,13 @@ func (repo database) GetCreator() (*core.Creator, error) {
 func (repo database) GetStudy() (*core.Study, error) {
 	// database logic
 	return &core.Study{}, nil
+}
+
+func (repo database) GetAnalyticsJob(rid string, egg core.EEGData, webcam core.WebcamData) (core.AnalyticsJob, error) {
+	// database logic
+	return core.AnalyticsJob{}, nil
+}
+
+func (repo database) NewAnalyticsJob(rid string, eeg core.EEGData, webcam core.WebcamData) error {
+	return nil
 }
