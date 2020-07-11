@@ -6,7 +6,8 @@ import (
 )
 
 type ReviewerRepository interface {
-	GetReviewer(uid int) (*core.Reviewer, error)
+	GetReviewer(uid string) (*core.Reviewer, error)
+	NewReviewer(uid, firstName, lastName, email string, demos core.Demographics) (*core.Reviewer, error)
 }
 
 func NewReviewerRepository(database gateway.Database) ReviewerRepository {
@@ -17,6 +18,11 @@ type reviewerRepository struct {
 	database gateway.Database
 }
 
-func (repo *reviewerRepository) GetReviewer(uid int) (*core.Reviewer, error) {
-	return repo.database.GetReviewer()
+func (repo *reviewerRepository) GetReviewer(uid string) (*core.Reviewer, error) {
+	return nil, nil
+	// return repo.database.GetReviewer(uid)
+}
+
+func (repo *reviewerRepository) NewReviewer(uid, firstName, lastName, email string, demos core.Demographics) (*core.Reviewer, error) {
+	return repo.database.NewReviewer(uid, firstName, lastName, email, demos)
 }

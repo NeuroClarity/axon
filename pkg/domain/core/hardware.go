@@ -1,14 +1,15 @@
 package core
 
-// TODO: BiometricHardware is one of the physical sensors that a Reviewer can use to collect Biometrics.
-type BiometricHardware struct {
+// Hardware
+type Hardware struct {
+	Webcam     Webcam
+	EEGHeadset EEGHeadset
 }
 
+// EEGHeadset
 type EEGHeadset struct {
 }
 
-type Emotiv struct {
-}
-
+// Webcam
 type Webcam struct {
 }

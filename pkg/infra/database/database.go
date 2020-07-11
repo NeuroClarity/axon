@@ -14,21 +14,20 @@ type database struct {
 	secret           string
 }
 
-func (repo database) NewReviewer(name string, demographics core.Demographics) (int, error) {
-	// database logic
-	return 0, nil
-}
-
-func (repo database) GetReviewer() (*core.Reviewer, error) {
+func (repo database) GetReviewer(uid string) (*core.Reviewer, error) {
 	// database logic
 	return &core.Reviewer{}, nil
 }
 
-func (repo database) NewReviewJob() error {
+func (repo database) NewReviewer(uid, firstName, lastName, email string, demos core.Demographics) (*core.Reviewer, error) {
+	return &core.Reviewer{}, nil
+}
+
+func (repo database) NewReviewJob(demo core.Demographics, hardware core.Hardware) error {
 	return nil
 }
 
-func (repo database) GetReviewJob(age int, gender, race string) (core.ReviewJob, error) {
+func (repo database) GetReviewJob(demo core.Demographics, hardware core.Hardware) (core.ReviewJob, error) {
 	// database logic
 	return core.ReviewJob{}, nil
 }
@@ -48,6 +47,6 @@ func (repo database) GetAnalyticsJob(rid string, egg core.EEGData, webcam core.W
 	return core.AnalyticsJob{}, nil
 }
 
-func (repo database) NewAnalyticsJob(rid string, eeg core.EEGData, webcam core.WebcamData) error {
+func (repo database) NewAnalyticsJob(*core.Biometrics) error {
 	return nil
 }
