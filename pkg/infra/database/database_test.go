@@ -24,7 +24,7 @@ func TestGetReviewerByUID(t *testing.T) {
     return
   }
 
-  _, err = db.GetReviewerByUID(1)
+  _, err = db.GetReviewer("test")
   if err != nil {
     return
   }

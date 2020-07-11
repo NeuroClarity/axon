@@ -6,7 +6,7 @@ import (
 )
 
 type AnalyticsJobRepository interface {
-	NewAnalyticsJob(core.ReviewJob, *core.Biometrics) error
+	NewAnalyticsJob(*core.Biometrics) error
 }
 
 func NewAnalyticsJobRepository(database gateway.Database) AnalyticsJobRepository {
@@ -17,6 +17,6 @@ type analyticsJobRepository struct {
 	database gateway.Database
 }
 
-func (repo *analyticsJobRepository) NewAnalyticsJob(rj core.ReviewJob, biometrics *core.Biometrics) error {
-	return repo.database.NewAnalyticsJob(biometrics.Reviewer.UID(), biometrics.EEGData, biometrics.WebcamData)
+func (repo *analyticsJobRepository) NewAnalyticsJob(biometrics *core.Biometrics) error {
+	return repo.database.NewAnalyticsJob(biometrics)
 }

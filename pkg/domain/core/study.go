@@ -2,6 +2,7 @@ package core
 
 // TODO: A Study is an aggregate of users
 type Study struct {
+	UID             int
 	NumParticipants int
 	Demographics    Demographics
 	Reviews         []Review
