@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,22 +31,50 @@ func NewReviewerHandler(rr repo.ReviewerRepository, rjr repo.ReviewJobRepository
 	return &reviewerHandler{rr, rjr, ajr}
 }
 
+// ReviewJobRequest is a struct following the request body format to the "/api/reviewer/reviewJob" endpoint.
+type ReviewJobRequest struct {
+	Webcam       bool
+	Headset      RequestHeadset
+	Demographics RequestDemographics
+}
+
+type RequestHeadset struct {
+	Connected bool
+	Type      string
+}
+
+type RequestDemographics struct {
+	Age    int
+	Gender string
+	Race   string
+}
+
 // ReviewerProfile retrieves profile information for a logged in Reviewer
 func (rh *reviewerHandler) Ping(w http.ResponseWriter, r *http.Request) {
 	ping := app.Ping()
+	fmt.Printf("ping\n")
 	fmt.Fprint(w, ping)
 }
 
 // AssignReviewJob retrieves a ReviewJob for a User based on Demographics and BioHardware criteria.
 func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Request) {
-	// rawUID := httprouter.ParamsFromContext(r.Context()).ByName("uid")
-	// uid, err := strconv.Atoi(rawUID)
-	// if err != nil {
-	// 	// TODO
-	// }
+	var rjr ReviewJobRequest
 
-	// reviewer, _ := app.AssignReviewJob(uid)
-	// fmt.Fprint(w, reviewer)
+	err := decodeJSONBody(w, r, &rjr)
+	if err != nil {
+		log.Print(err.Error())
+
+		var mr *malformedRequest
+		if errors.As(err, &mr) {
+			http.Error(w, mr.msg, mr.status)
+		} else {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	fmt.Printf("request body: %+v", rjr)
+
 }
 
 // CheckForReviewer consults the ReviewerRepository to see if the Reviewer
@@ -69,8 +98,10 @@ func (rh *reviewerHandler) CheckForReviewer(next http.HandlerFunc) http.Handler 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else if reviewer == nil {
+
 			// Custom claims setup as auth0 rules from the client. These values
 			// should always be in the JWT.
+
 			rawFirstName := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/given_name"]
 			firstName, ok := rawFirstName.(string)
 			if !ok {

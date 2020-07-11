@@ -36,11 +36,11 @@ func main() {
 
 	// Reviewer routes.
 	router.Handler("GET", "/api/reviewer/ping", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.Ping))))
-	router.Handler("GET", "/api/reviewer/reviewJob", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.AssignReviewJob))))
+	router.Handler("POST", "/api/reviewer/reviewJob", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.AssignReviewJob))))
 
 	// Creator routes.
-	router.Handler("GET", "/api/creator/study", jwtMiddleware.Handler((http.HandlerFunc(creatorHandler.CreateStudy))))
-	router.Handler("GET", "/api/creator/results", jwtMiddleware.Handler(http.HandlerFunc(creatorHandler.ViewStudy)))
+	router.Handler("POST", "/api/creator/study", jwtMiddleware.Handler((http.HandlerFunc(creatorHandler.CreateStudy))))
+	router.Handler("POST", "/api/creator/results", jwtMiddleware.Handler(http.HandlerFunc(creatorHandler.ViewStudy)))
 
 	corsWrapper := cors.New(cors.Options{
 		AllowedMethods: []string{"GET", "POST"},
