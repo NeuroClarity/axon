@@ -1,6 +1,8 @@
 package gateway
 
-import ()
+import (
+  "time"
+)
 
 type Storage interface {
   GetVideoUrl(videoKey string, expiration time.Duration) (string, error)
