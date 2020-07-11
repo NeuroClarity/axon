@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	app "github.com/NeuroClarity/axon/pkg/application"
@@ -70,9 +71,29 @@ func (rh *reviewerHandler) CheckForReviewer(next http.HandlerFunc) http.Handler 
 		} else if reviewer == nil {
 			// Custom claims setup as auth0 rules from the client. These values
 			// should always be in the JWT.
-			firstName := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/given_name"].(string)
-			lastName := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/family_name"].(string)
-			email := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/email"].(string)
+			rawFirstName := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/given_name"]
+			firstName, ok := rawFirstName.(string)
+			if !ok {
+				log.Printf("Failed to get 'firstName' claim from JWT, got: %v.\n", rawFirstName)
+				http.Error(w, "Incomplete firstName information in JWT", http.StatusBadRequest)
+				return
+			}
+
+			rawLastName := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/family_name"]
+			lastName, ok := rawLastName.(string)
+			if !ok {
+				log.Printf("Failed to get 'lastName' claim from JWT, got: %v.\n", rawLastName)
+				http.Error(w, "Incomplete lastName information in JWT", http.StatusBadRequest)
+				return
+			}
+
+			rawEmail := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/email"]
+			email, ok := rawEmail.(string)
+			if !ok {
+				log.Printf("Failed to get 'email' claim from JWT, got: %v.\n", rawEmail)
+				http.Error(w, "Incomplete email information in JWT", http.StatusBadRequest)
+				return
+			}
 
 			demos := core.Demographics{}
 			rh.reviewerRepo.NewReviewer(uid, firstName, lastName, email, demos)
