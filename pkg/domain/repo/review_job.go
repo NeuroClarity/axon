@@ -6,7 +6,7 @@ import (
 )
 
 type ReviewJobRepository interface {
-	GetReviewJob(core.Demographics, core.Hardware) (core.ReviewJob, error)
+	GetReviewJob(core.Demographics, core.Hardware) (*core.ReviewJob, error)
 }
 
 func NewReviewJobRepository(database gateway.Database) ReviewJobRepository {
@@ -17,7 +17,6 @@ type reviewJobRepository struct {
 	database gateway.Database
 }
 
-func (repo *reviewJobRepository) GetReviewJob(demo core.Demographics, hardware core.Hardware) (core.ReviewJob, error) {
-	// repo.database.GetAllStudies{}
-	return core.ReviewJob{}, nil
+func (repo *reviewJobRepository) GetReviewJob(demo core.Demographics, hardware core.Hardware) (*core.ReviewJob, error) {
+	return repo.database.GetReviewJob(demo, hardware)
 }

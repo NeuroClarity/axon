@@ -15,6 +15,9 @@ type Database interface {
 
 	NewReview(reviewerId, videoKey, creatorId, eeg core.EEGData, webcam core.WebcamData) error
 
+	GetReviewJob(demo core.Demographics, hardware core.Hardware) (*core.ReviewJob, error)
+	GetStudyReviews(creatorId, videoKey string) ([]*core.Review, error)
+
 	// NewReviewJob(core.Demographics, core.Hardware) error
 	// GetReviewJob(core.Demographics, core.Hardware) (core.ReviewJob, error)
 

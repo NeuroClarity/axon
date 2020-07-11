@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/NeuroClarity/axon/pkg/domain/core"
 	"github.com/NeuroClarity/axon/pkg/domain/repo"
 )
@@ -11,9 +13,10 @@ func InitReviewer() {
 }
 
 // AssignReviewJob retrieves a ReviewJob for a Reviewer.
-func AssignReviewJob(reviewer *core.Reviewer, hardware core.Hardware, rjRepo repo.ReviewJobRepository) (core.ReviewJob, error) {
-	return core.ReviewJob{Study: core.Study{UID: 1, Content: core.Content{"https://examples3uri"}}}, nil
-	// return rjRepo.GetReviewJob(reviewer.Demographics, hardware)
+func AssignReviewJob(reviewer *core.Reviewer, hardware core.Hardware, rjRepo repo.ReviewJobRepository) (*core.ReviewJob, error) {
+	fmt.Printf("\nreviewer: %+v\n", reviewer)
+	fmt.Printf("hardware: %+v\n", hardware)
+	return rjRepo.GetReviewJob(reviewer.Demographics, hardware)
 }
 
 // SubmitAnalyticsJob turns a ReviewJob into an AnalyticsJob to process into Insights.

@@ -19,7 +19,7 @@ type reviewerRepository struct {
 }
 
 func (repo *reviewerRepository) GetReviewer(uid string) (*core.Reviewer, error) {
-	return nil, nil
+	return &core.Reviewer{UID: "foo|123", FirstName: "John", LastName: "Smith", Email: "john@hotmail.net", Demographics: core.Demographics{Age: 50, Gender: "male", Race: "black"}}, nil
 	// return repo.database.GetReviewer(uid)
 }
 

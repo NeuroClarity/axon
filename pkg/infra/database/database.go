@@ -268,24 +268,24 @@ func (db database) NewReview(reviewerId, videoKey, creatorId, eeg core.EEGData, 
 	return nil
 }
 
-func (db database) GetReview(demo core.Demographics, hardware core.Hardware) (*core.ReviewJob, error) {
-  // for build purposes
-  _ = hardware
+func (db database) GetReviewJob(demo core.Demographics, hardware core.Hardware) (*core.ReviewJob, error) {
+	// for build purposes
+	_ = hardware
 	var videoKey string
-  query := "SELECT video_key FROM study WHERE gender = $1 AND race = $2 AND AGE_MIN < $3 AND AGE_MAX > $3"
+	query := "SELECT video_key FROM study WHERE gender = $1 AND race = $2 AND AGE_MIN < $3 AND AGE_MAX > $3"
 	err := db.dbClient.QueryRow(query, demo.Gender, demo.Race, demo.Age).Scan(&videoKey)
-  if err == sql.ErrNoRows {
-    // TODO: Log the actual demographics in the error here for debugging purposes
-    return nil, errors.New(fmt.Sprintf("Unable to find a study with matching demographics"))
-  }
+	if err == sql.ErrNoRows {
+		// TODO: Log the actual demographics in the error here for debugging purposes
+		return nil, errors.New(fmt.Sprintf("Unable to find a study with matching demographics"))
+	}
 	if err != nil {
-    return nil, errors.New(fmt.Sprintf("Error occured when querying the study table: %s", err))
+		return nil, errors.New(fmt.Sprintf("Error occured when querying the study table: %s", err))
 	}
 
-  return &core.ReviewJob{ Study: core.Study{ Content: core.Content { VideoLocation : videoKey } } }, nil
+	return &core.ReviewJob{Study: core.Study{Content: core.Content{VideoLocation: videoKey}}}, nil
 }
 
-// TODO: Implement for Milestone #2 (user dashboard). I hate the name of this function
+// TODO: Implement for Milestone #2 (user dashboard). I hate the name of this function (ha)
 func (db database) GetReviewerReviews(reviewerId string) ([]*core.Review, error) {
 	return nil, nil
 }
