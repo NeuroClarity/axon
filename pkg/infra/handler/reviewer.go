@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -31,8 +32,10 @@ func NewReviewerHandler(rr repo.ReviewerRepository, rjr repo.ReviewJobRepository
 	return &reviewerHandler{rr, rjr, ajr}
 }
 
-// ReviewJobRequest is a struct following the request body format to the "/api/reviewer/reviewJob" endpoint.
+// "/api/reviewer/reviewJob" POST request body
+
 type ReviewJobRequest struct {
+	UID          string
 	Webcam       bool
 	Headset      RequestHeadset
 	Demographics RequestDemographics
@@ -49,6 +52,13 @@ type RequestDemographics struct {
 	Race   string
 }
 
+// "/api/reviewer/reviewJob" POST response body
+
+type ReviewJobResponse struct {
+	StudyID int
+	Content string
+}
+
 // ReviewerProfile retrieves profile information for a logged in Reviewer
 func (rh *reviewerHandler) Ping(w http.ResponseWriter, r *http.Request) {
 	ping := app.Ping()
@@ -60,6 +70,7 @@ func (rh *reviewerHandler) Ping(w http.ResponseWriter, r *http.Request) {
 func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Request) {
 	var rjr ReviewJobRequest
 
+	// Parsing logic and error handling in `parser.go`.
 	err := decodeJSONBody(w, r, &rjr)
 	if err != nil {
 		log.Print(err.Error())
@@ -72,9 +83,42 @@ func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+	fmt.Printf("%+v\n", rjr)
 
-	fmt.Printf("request body: %+v", rjr)
+	reviewer, err := rh.reviewerRepo.GetReviewer(rjr.UID)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
+	hardware, err := core.NewHardware(true, rjr.Headset.Type)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	reviewJob, err := app.AssignReviewJob(reviewer, hardware, rh.reviewJobRepo)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	// Constructing response struct and marshaling into JSON.
+	sid := reviewJob.Study.UID
+	content := reviewJob.Study.Content.Location
+	response := ReviewJobResponse{StudyID: sid, Content: content}
+
+	js, err := json.Marshal(response)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
 // CheckForReviewer consults the ReviewerRepository to see if the Reviewer

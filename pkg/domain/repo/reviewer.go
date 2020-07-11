@@ -1,8 +1,6 @@
 package repo
 
 import (
-	"fmt"
-
 	"github.com/NeuroClarity/axon/pkg/domain/core"
 	"github.com/NeuroClarity/axon/pkg/domain/gateway"
 )
@@ -21,7 +19,6 @@ type reviewerRepository struct {
 }
 
 func (repo *reviewerRepository) GetReviewer(uid string) (*core.Reviewer, error) {
-	fmt.Printf("%s\n", uid)
 	return nil, nil
 	// return repo.database.GetReviewer(uid)
 }

@@ -12,7 +12,8 @@ func InitReviewer() {
 
 // AssignReviewJob retrieves a ReviewJob for a Reviewer.
 func AssignReviewJob(reviewer *core.Reviewer, hardware core.Hardware, rjRepo repo.ReviewJobRepository) (core.ReviewJob, error) {
-	return rjRepo.GetReviewJob(reviewer.Demographics, hardware)
+	return core.ReviewJob{Study: core.Study{UID: 1, Content: core.Content{"https://examples3uri"}}}, nil
+	// return rjRepo.GetReviewJob(reviewer.Demographics, hardware)
 }
 
 // SubmitAnalyticsJob turns a ReviewJob into an AnalyticsJob to process into Insights.
