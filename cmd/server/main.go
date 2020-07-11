@@ -2,6 +2,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -18,7 +19,11 @@ func main() {
 	router := httprouter.New()
 
 	// Service and middleware singletons.
-	db := database.NewDatabase("foo", "foo")
+	db, err := database.NewDatabase("neuroc", "NeuroCDB12", "nc-database.cr7v5oc2x2xe.us-west-1.rds.amazonaws.com", "5432", "postgres")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	reviewRepo := repo.NewReviewerRepository(db)
 	reviewJobRepo := repo.NewReviewJobRepository(db)
 	analyticsJobRepo := repo.NewAnalyticsJobRepository(db)

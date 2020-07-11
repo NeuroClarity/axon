@@ -4,14 +4,15 @@ package core
 type Study struct {
 	UID             int
 	NumParticipants int
-	Demographics    Demographics
-	Reviews         []Review
+	NumRemaining    int
+	StudyRequest    StudyRequest
+	Reviews         []*Review
 	ReviewJobs      []ReviewJob
-	Client          Creator
+	Creator         *Creator
 	Content         Content
 }
 
 // TODO: Factory pattern... What goes into making a new study
 func NewStudy(numParticipants int, demographics Demographics, client Creator, content Content) *Study {
-	return &Study{NumParticipants: numParticipants, Demographics: demographics}
+	return &Study{NumParticipants: numParticipants}
 }

@@ -9,8 +9,10 @@ type Biometrics struct {
 
 // EEGData is raw EEG waveform data from a headset.
 type EEGData struct {
+	S3Key string
 }
 
 // WebcamData is raw webcam data.
 type WebcamData struct {
+	S3Key string
 }

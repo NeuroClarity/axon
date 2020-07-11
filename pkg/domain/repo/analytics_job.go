@@ -18,5 +18,5 @@ type analyticsJobRepository struct {
 }
 
 func (repo *analyticsJobRepository) NewAnalyticsJob(biometrics *core.Biometrics) error {
-	return repo.database.NewAnalyticsJob(biometrics)
+	return nil
 }

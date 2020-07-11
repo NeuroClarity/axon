@@ -108,7 +108,7 @@ func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Reques
 
 	// Constructing response struct and marshaling into JSON.
 	sid := reviewJob.Study.UID
-	content := reviewJob.Study.Content.Location
+	content := reviewJob.Study.Content.VideoLocation
 	response := ReviewJobResponse{StudyID: sid, Content: content}
 
 	js, err := json.Marshal(response)

@@ -6,7 +6,7 @@ import (
 )
 
 type CreatorRepository interface {
-	GetCreator() (*core.Creator, error)
+	GetCreator(uid string) (*core.Creator, error)
 }
 
 func NewCreatorRepository(database gateway.Database) CreatorRepository {
@@ -17,6 +17,6 @@ type creatorRepository struct {
 	database gateway.Database
 }
 
-func (repo *creatorRepository) GetCreator() (*core.Creator, error) {
-	return repo.database.GetCreator()
+func (repo *creatorRepository) GetCreator(uid string) (*core.Creator, error) {
+	return repo.database.GetCreator(uid)
 }

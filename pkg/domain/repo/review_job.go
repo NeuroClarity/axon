@@ -18,5 +18,6 @@ type reviewJobRepository struct {
 }
 
 func (repo *reviewJobRepository) GetReviewJob(demo core.Demographics, hardware core.Hardware) (core.ReviewJob, error) {
-	return repo.database.GetReviewJob(demo, hardware)
+	// repo.database.GetAllStudies{}
+	return core.ReviewJob{}, nil
 }
