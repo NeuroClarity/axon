@@ -6,7 +6,7 @@ import (
 )
 
 type StudyRepository interface {
-	GetStudy(uid, videoKey string) (*core.Study, error)
+	GetStudy(uid int) (*core.Study, error)
 }
 
 func NewStudyRepository(database gateway.Database) StudyRepository {
@@ -17,6 +17,6 @@ type studyRepository struct {
 	database gateway.Database
 }
 
-func (repo *studyRepository) GetStudy(uid, videoKey string) (*core.Study, error) {
-	return repo.database.GetStudy(uid, videoKey)
+func (repo *studyRepository) GetStudy(uid int) (*core.Study, error) {
+	return repo.database.GetStudy(uid)
 }

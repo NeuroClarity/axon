@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	_ "github.com/lib/pq"
 
@@ -85,6 +86,10 @@ func (db database) GetReviewer(uid string) (*core.Reviewer, error) {
 	return reviewer, nil
 }
 
+func (db database) UpdateReviewerWithReviewJob(uid string, reviewJob *core.ReviewJob) error {
+	return nil
+}
+
 // NewCreator adds a new creator profile to the database.
 func (db database) NewCreator(uid, firstName, lastName, email, company string) error {
 	var temp string
@@ -151,49 +156,8 @@ func (db database) NewStudy(creatorId int, videoKey string, reviewCount, ageMax,
 }
 
 // GetStudy retreives a study by uid.
-func (db database) GetStudy(creatorId, videoKey string) (*core.Study, error) {
-	var gender, race string
-	var reviewCount, reviewsRemaining, ageMax, ageMin int
-	var eeg, eyeTracking bool
-
-	query := "SELECT review_count, reviews_remaining, age_max, age_min, gender, race, eeg_headset, eye_tracking FROM study WHERE creator_id = $1 AND video_key = $2"
-	err := db.dbClient.QueryRow(query, creatorId, videoKey).Scan(&reviewCount, &reviewsRemaining, &ageMax, &ageMin, &gender, &race, &eeg, &eyeTracking)
-	if err == sql.ErrNoRows {
-		return nil, errors.New(fmt.Sprintf("There are no records with creator_id %s and video_key %s", creatorId, videoKey))
-	} else if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error occured when querying the study table"))
-	}
-
-	// get the associated reviews
-	reviews, err := db.GetStudyReviews(creatorId, videoKey)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error when retrieving study reviews: %s", err))
-	}
-	// get the associated creator profile
-	creator, err := db.GetCreator(creatorId)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error when retrieving user profile: %s", err))
-	}
-
-	study := core.Study{
-		NumParticipants: reviewCount,
-		NumRemaining:    reviewsRemaining,
-		StudyRequest: core.StudyRequest{
-			MinAge:      ageMin,
-			MaxAge:      ageMax,
-			Gender:      gender,
-			Race:        race,
-			Eeg:         eeg,
-			EyeTracking: eyeTracking,
-		},
-		Reviews: reviews,
-		Creator: creator,
-		Content: core.Content{
-			VideoLocation: videoKey,
-		},
-	}
-
-	return &study, nil
+func (db database) GetStudy(uid int) (*core.Study, error) {
+	return nil, nil
 }
 
 // GetAllStudies retreives all Studies in the database.
@@ -260,11 +224,15 @@ func (db database) NewReview(reviewerId, videoKey, creatorId, eeg core.EEGData, 
 	}
 
 	query = "INSERT INTO review VALUES($1, $2, $3, $4, $5)"
-	_, err = db.dbClient.Exec(query, reviewerId, videoKey, creatorId, eeg.S3Key, webcam.S3Key)
+	_, err = db.dbClient.Exec(query, reviewerId, videoKey, creatorId, eeg.Location, webcam.Location)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error when adding review to the database: %s", err))
 	}
 
+	return nil
+}
+
+func (db database) NewReviewJob(studyID int, reviewerID string, completed time.Time) error {
 	return nil
 }
 
@@ -282,7 +250,11 @@ func (db database) GetReviewJob(demo core.Demographics, hardware core.Hardware) 
 		return nil, errors.New(fmt.Sprintf("Error occured when querying the study table: %s", err))
 	}
 
-	return &core.ReviewJob{Study: core.Study{Content: core.Content{VideoLocation: videoKey}}}, nil
+	return &core.ReviewJob{Study: &core.Study{Content: core.Content{VideoLocation: videoKey}}}, nil
+}
+
+func (db database) GetReviewJobByStudy(study *core.Study) (*core.ReviewJob, error) {
+	return nil, nil
 }
 
 // TODO: Implement for Milestone #2 (user dashboard). I hate the name of this function (ha)

@@ -1,10 +1,9 @@
 package core
 
-// TODO: A ReviewJob is a Review that has yet to be completed.
-type ReviewJob struct {
-	Study        Study
-}
+import "time"
 
-func NewReviewJob(study Study) ReviewJob {
-	return ReviewJob{study}
+// A ReviewJob is a Review that needs to be completed.
+type ReviewJob struct {
+	Study     *Study
+	Completed time.Time
 }

@@ -7,6 +7,7 @@ type Reviewer struct {
 	LastName     string
 	Email        string
 	Demographics Demographics
+	ReviewJobs   []ReviewJob
 }
 
 // Demographics enumerates characteristics about a Study Participant that are interesting to a Client.

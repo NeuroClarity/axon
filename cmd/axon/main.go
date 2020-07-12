@@ -33,7 +33,7 @@ func main() {
 
 	// Dependency injection.
 	publicHandler := handler.NewPublicHandler()
-	reviewerHandler := handler.NewReviewerHandler(reviewRepo, reviewJobRepo, analyticsJobRepo)
+	reviewerHandler := handler.NewReviewerHandler(reviewRepo, reviewJobRepo, analyticsJobRepo, studyRepo)
 	creatorHandler := handler.NewCreatorHandler(creatorRepo, studyRepo)
 
 	// Public routes.
@@ -42,6 +42,7 @@ func main() {
 	// Reviewer routes.
 	router.Handler("GET", "/api/reviewer/ping", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.Ping))))
 	router.Handler("POST", "/api/reviewer/reviewJob", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.AssignReviewJob))))
+	router.Handler("POST", "/api/reviewer/finishReviewJob", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.FinishReviewJob))))
 
 	// Creator routes.
 	router.Handler("POST", "/api/creator/study", jwtMiddleware.Handler((http.HandlerFunc(creatorHandler.CreateStudy))))
