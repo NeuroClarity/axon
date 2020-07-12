@@ -9,7 +9,7 @@ type Database interface {
 	NewCreator(uid, firstName, lastName, email, company string) error
 	GetCreator(uid string) (*core.Creator, error)
 
-	NewStudy(creatorId int, videoKey string, reviewCount, agemax, ageMin int, gender, race string, eegHeadset, eyeTracking bool) error
+	NewStudy(creatorId, videoKey string, request *core.StudyRequest) (int, error)
 	GetStudy(creatorId, videoKey string) (*core.Study, error)
 	GetAllStudies(creatorId string) ([]*core.Study, error)
 

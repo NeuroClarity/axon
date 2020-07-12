@@ -9,6 +9,8 @@ import (
 
 	"github.com/NeuroClarity/axon/pkg/domain/repo"
 	"github.com/NeuroClarity/axon/pkg/infra/database"
+	"github.com/NeuroClarity/axon/pkg/infra/session"
+	"github.com/NeuroClarity/axon/pkg/infra/storage"
 	"github.com/NeuroClarity/axon/pkg/infra/handler"
 	"github.com/NeuroClarity/axon/pkg/infra/middleware"
 	"github.com/rs/cors"
@@ -23,12 +25,20 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+  awsSession, err := session.NewSession("us-west-1")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+  s3, err := storage.NewStorage(awsSession.GetSession())
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	reviewRepo := repo.NewReviewerRepository(db)
 	reviewJobRepo := repo.NewReviewJobRepository(db)
 	analyticsJobRepo := repo.NewAnalyticsJobRepository(db)
 	creatorRepo := repo.NewCreatorRepository(db)
-	studyRepo := repo.NewStudyRepository(db)
+	studyRepo := repo.NewStudyRepository(db, s3)
 	jwtMiddleware := middleware.NewJWTMiddleware()
 
 	// Dependency injection.
@@ -44,8 +54,8 @@ func main() {
 	router.Handler("POST", "/api/reviewer/reviewJob", jwtMiddleware.Handler(reviewerHandler.CheckForReviewer(http.HandlerFunc(reviewerHandler.AssignReviewJob))))
 
 	// Creator routes.
-	router.Handler("POST", "/api/creator/study", jwtMiddleware.Handler((http.HandlerFunc(creatorHandler.CreateStudy))))
-	router.Handler("POST", "/api/creator/results", jwtMiddleware.Handler(http.HandlerFunc(creatorHandler.ViewStudy)))
+	router.Handler("POST", "/api/creator/study", jwtMiddleware.Handler(creatorHandler.CheckForCreator(http.HandlerFunc(creatorHandler.CreateStudy))))
+	router.Handler("POST", "/api/creator/results", jwtMiddleware.Handler(creatorHandler.CheckForCreator(http.HandlerFunc(creatorHandler.ViewStudy))))
 
 	corsWrapper := cors.New(cors.Options{
 		AllowedMethods: []string{"GET", "POST"},

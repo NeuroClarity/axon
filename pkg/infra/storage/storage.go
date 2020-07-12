@@ -24,6 +24,8 @@ const VIDEO_BUCKET = "nc-client-video-content"
 const RAW_DATA_BUCKET = "nc-reviewer-raw-data"
 
 // key should be of the format <Type(eye-tracking/eeg)>/<username>/<video-id>
+// Keeping this function here, but I don't think it is going to be used w/
+// current implementation
 func (repo storage) StoreBioMetricData(key, data string) error {
   _, err := repo.getS3ObjectMetadata(key, RAW_DATA_BUCKET)
   if err == nil {
@@ -63,7 +65,7 @@ func (repo storage) GetVideoUrl(videoKey string, expiration time.Duration) (stri
   return presignedUrl, nil
 }
 
-func (repo storage) GetVideoUploadURL(videoKey string, expiration time.Duration) (string, error) {
+func (repo storage) GetVideoUploadUrl(videoKey string, expiration time.Duration) (string, error) {
   _, err := repo.getS3ObjectMetadata(videoKey, VIDEO_BUCKET)
   if err == nil {
     return "", errors.New(fmt.Sprintf("Object with key %s already exists", videoKey))
