@@ -28,7 +28,7 @@ func (repo *studyRepository) NewStudy(creatorId, videoKey string, request *core.
 	if err != nil {
 		return -1, "", err
 	}
-	url, err := repo.storage.GetVideoUploadUrl(videoKey, URL_EXPIRATION)
+	url, err := repo.storage.GetVideoUploadURL(videoKey, URL_EXPIRATION)
 	return studyId, url, nil
 }
 
