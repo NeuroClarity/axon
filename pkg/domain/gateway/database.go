@@ -6,6 +6,7 @@ import (
 	"github.com/NeuroClarity/axon/pkg/domain/core"
 )
 
+// Database gives access to a relational datastore.
 type Database interface {
 	NewReviewer(uid, firstName, lastName, email string, demos core.Demographics) error
 	GetReviewer(uid string) (*core.Reviewer, error)
@@ -24,10 +25,4 @@ type Database interface {
 	GetReviewJobByStudy(study *core.Study) (*core.ReviewJob, error)
 	NewReviewJob(studyID int, reviewerID string, completed time.Time) error
 	GetStudyReviews(creatorId, videoKey string) ([]*core.Review, error)
-
-	// NewReviewJob(core.Demographics, core.Hardware) error
-	// GetReviewJob(core.Demographics, core.Hardware) (core.ReviewJob, error)
-
-	// NewAnalyticsJob(*core.Biometrics) error
-	// GetAnalyticsJob(rid string, eeg core.EEGData, webcam core.WebcamData) (core.AnalyticsJob, error)
 }

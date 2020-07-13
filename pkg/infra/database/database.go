@@ -10,9 +10,11 @@ import (
 
 	//"github.com/NeuroClarity/axon/pkg/domain/gateway"
 	"github.com/NeuroClarity/axon/pkg/domain/core"
+	"github.com/NeuroClarity/axon/pkg/domain/gateway"
 )
 
-func NewDatabase(username, password, endpoint, port, dbName string) (*database, error) {
+// NewDatabase creates a new instance of a relational database service.
+func NewDatabase(username, password, endpoint, port, dbName string) (gateway.Database, error) {
 	dbDsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, endpoint, port, dbName)
 	db, err := sql.Open("postgres", dbDsn)
 	if err != nil {
