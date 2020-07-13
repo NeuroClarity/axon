@@ -52,13 +52,14 @@ func (db database) NewReviewer(uid, firstName, lastName, email string, dem core.
 }
 
 // GetReviewer retreives the reviewer's profile given the uid of that reviewer.
+// Returns nil for both reviewer and error if the user does not exist
 func (db database) GetReviewer(uid string) (*core.Reviewer, error) {
 	var firstName, lastName, email string
 	var demographicsId int
 	query := "SELECT first_name, last_name, email, demographics_id FROM reviewers WHERE uid = $1"
 	err := db.dbClient.QueryRow(query, uid).Scan(&firstName, &lastName, &email, &demographicsId)
 	if err == sql.ErrNoRows {
-		return nil, errors.New(fmt.Sprintf("Unable to find user with uid %s", uid))
+		return nil, nil
 	} else if err != nil {
 		return nil, errors.New(fmt.Sprintf("Failed to get reviewer with uid %s: %s", uid, err))
 	}
@@ -119,7 +120,7 @@ func (db database) GetCreator(uid string) (*core.Creator, error) {
 	query := "SELECT first_name, last_name, email, company FROM creator WHERE uid = $1"
 	err := db.dbClient.QueryRow(query, uid).Scan(&firstName, &lastName, &email, &company)
 	if err == sql.ErrNoRows {
-		return nil, errors.New(fmt.Sprintf("Unable to find user with uid %s", uid))
+		return nil, nil
 	} else if err != nil {
 		return nil, errors.New(fmt.Sprintf("Failed to get reviewer with uid %s: %s", uid, err))
 	}
@@ -135,31 +136,75 @@ func (db database) GetCreator(uid string) (*core.Creator, error) {
 }
 
 // NewStudy adds a new study in the database and returns the unique id of that study.
-func (db database) NewStudy(creatorId int, videoKey string, reviewCount, ageMax, ageMin int,
-	gender, race string, eegHeadset, eyeTracking bool) error {
+func (db database) NewStudy(creatorId, videoKey string, req *core.StudyRequest) (int, error) {
 	// check if the study already exists
+	reviewCount, ageMax, ageMin := req.NumParticipants, req.MaxAge, req.MinAge
+	gender, race := req.Gender, req.Race
+	eegHeadset, eyeTracking := req.Eeg, req.EyeTracking
 	var temp int
 	query := "SELECT creator_id FROM study WHERE creatorId = $1 AND videoKey = $2"
 	err := db.dbClient.QueryRow(query, creatorId, videoKey).Scan(&temp)
 	if err != sql.ErrNoRows {
-		return errors.New("A study with that creator and video already exists")
+		return -1, errors.New("A study with that creator and video already exists")
 	} else if err != nil {
-		return errors.New("An error occured when querying the database")
+		return -1, errors.New("An error occured when querying the database")
 	}
 
 	query = "INSERT INTO study VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 	_, err = db.dbClient.Exec(query, creatorId, videoKey, reviewCount, reviewCount, ageMax, ageMin, gender,
 		race, eegHeadset, eyeTracking)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error when adding study to the database: %s", err))
+		return -1, errors.New(fmt.Sprintf("Error when adding study to the database: %s", err))
 	}
 
-	return nil
+	studyId, err := db.getCurrentIdFromTable("study_study_id_seq")
+	return studyId, nil
 }
 
-// GetStudy retreives a study by uid.
-func (db database) GetStudy(uid int) (*core.Study, error) {
-	return nil, nil
+// GetStudy retreives a study by creatorID and videoKey
+func (db database) GetStudy(creatorId, videoKey string) (*core.Study, error) {
+	var gender, race string
+	var reviewCount, reviewsRemaining, ageMax, ageMin int
+	var eeg, eyeTracking bool
+
+	query := "SELECT review_count, reviews_remaining, age_max, age_min, gender, race, eeg_headset, eye_tracking FROM study WHERE creator_id = $1 AND video_key = $2"
+	err := db.dbClient.QueryRow(query, creatorId, videoKey).Scan(&reviewCount, &reviewsRemaining, &ageMax, &ageMin, &gender, &race, &eeg, &eyeTracking)
+	if err == sql.ErrNoRows {
+		return nil, errors.New(fmt.Sprintf("There are no records with creator_id %s and video_key %s", creatorId, videoKey))
+	} else if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error occured when querying the study table"))
+	}
+
+	// get the associated reviews
+	reviews, err := db.GetStudyReviews(creatorId, videoKey)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error when retrieving study reviews: %s", err))
+	}
+	// get the associated creator profile
+	creator, err := db.GetCreator(creatorId)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("Error when retrieving user profile: %s", err))
+	}
+
+	study := core.Study{
+		NumRemaining: reviewsRemaining,
+		StudyRequest: &core.StudyRequest{
+			NumParticipants: reviewCount,
+			MinAge:          ageMin,
+			MaxAge:          ageMax,
+			Gender:          gender,
+			Race:            race,
+			Eeg:             eeg,
+			EyeTracking:     eyeTracking,
+		},
+		Reviews: reviews,
+		Creator: creator,
+		Content: core.Content{
+			VideoLocation: videoKey,
+		},
+	}
+
+	return &study, nil
 }
 
 // GetAllStudies retreives all Studies in the database.
@@ -191,15 +236,15 @@ func (db database) GetAllStudies(creatorId string) ([]*core.Study, error) {
 		}
 
 		study := core.Study{
-			NumParticipants: reviewCount,
-			NumRemaining:    reviewsRemaining,
-			StudyRequest: core.StudyRequest{
-				MinAge:      ageMin,
-				MaxAge:      ageMax,
-				Gender:      gender,
-				Race:        race,
-				Eeg:         eeg,
-				EyeTracking: eyeTracking,
+			NumRemaining: reviewsRemaining,
+			StudyRequest: &core.StudyRequest{
+				NumParticipants: reviewCount,
+				MinAge:          ageMin,
+				MaxAge:          ageMax,
+				Gender:          gender,
+				Race:            race,
+				Eeg:             eeg,
+				EyeTracking:     eyeTracking,
 			},
 			Reviews: reviews,
 			Creator: creator,

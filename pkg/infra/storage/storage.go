@@ -37,7 +37,8 @@ func (repo storage) GetVideoUploadURL(videoKey string, expiration time.Duration)
 }
 
 // key should be of the format <Type(eye-tracking/eeg)>/<username>/<video-id>
-// Keeping this for now, in case we decide to pivot again
+// Keeping this function here, but I don't think it is going to be used w/
+// current implementation
 func (repo storage) StoreBioMetricData(key, data string) error {
 	_, err := repo.getS3ObjectMetadata(key, RAW_DATA_BUCKET)
 	if err == nil {
@@ -75,6 +76,26 @@ func (repo storage) getPresignedURLForRetrieval(key, bucket string, expiration t
 	req, _ := repo.client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
+	})
+
+	presignedUrl, err := req.Presign(expiration * time.Second)
+	if err != nil {
+		return "", err
+	}
+
+	return presignedUrl, nil
+
+}
+
+func (repo storage) GetVideoUploadUrl(videoKey string, expiration time.Duration) (string, error) {
+	_, err := repo.getS3ObjectMetadata(videoKey, VIDEO_BUCKET)
+	if err == nil {
+		return "", errors.New(fmt.Sprintf("Object with key %s already exists", videoKey))
+	}
+
+	req, _ := repo.client.PutObjectRequest(&s3.PutObjectInput{
+		Bucket: aws.String(VIDEO_BUCKET),
+		Key:    aws.String(videoKey),
 	})
 
 	presignedUrl, err := req.Presign(expiration * time.Second)
