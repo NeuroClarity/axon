@@ -10,7 +10,7 @@ const URL_EXPIRATION = 120
 
 type StudyRepository interface {
 	NewStudy(creatorId, videoKey string, request *core.StudyRequest) (int, string, error)
-	GetStudy(creatorId, videoKey string) (*core.Study, error)
+	GetStudy(studyID int) (*core.Study, error)
 }
 
 func NewStudyRepository(database gateway.Database, storage gateway.Storage) *studyRepository {
@@ -32,6 +32,6 @@ func (repo *studyRepository) NewStudy(creatorId, videoKey string, request *core.
 	return studyId, url, nil
 }
 
-func (repo *studyRepository) GetStudy(creatorId, videoKey string) (*core.Study, error) {
-	return repo.database.GetStudy(creatorId, videoKey)
+func (repo *studyRepository) GetStudy(studyID int) (*core.Study, error) {
+	return repo.database.GetStudy(studyID)
 }

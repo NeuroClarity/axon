@@ -61,7 +61,7 @@ func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Reques
 	}
 	fmt.Printf("%+v\n", rjr)
 
-	reviewer, err := rh.reviewerRepo.GetReviewer(rjr.reviewerID)
+	reviewer, err := rh.reviewerRepo.GetReviewer(rjr.ReviewerID)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -228,7 +228,7 @@ func (rh *reviewerHandler) CheckForReviewer(next http.HandlerFunc) http.Handler 
 // "/api/reviewer/reviewJob" POST request body
 
 type ReviewJobRequest struct {
-	reviewerID   string
+	ReviewerID   string
 	Webcam       bool
 	Headset      RequestHeadset
 	Demographics RequestDemographics
