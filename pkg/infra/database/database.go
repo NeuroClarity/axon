@@ -94,17 +94,9 @@ func (db database) UpdateReviewerWithReviewJob(uid string, reviewJob *core.Revie
 
 // NewCreator adds a new creator profile to the database.
 func (db database) NewCreator(uid, firstName, lastName, email, company string) error {
-	var temp string
-	query := "SELECT first_name FROM creator WHERE uid = $1"
-	err := db.dbClient.QueryRow(query, uid).Scan(&temp)
-	if err != sql.ErrNoRows {
-		return errors.New(fmt.Sprintf("Creator with uid %s already exists", uid))
-	} else if err != nil {
-		return errors.New(fmt.Sprintf("Failed to get reviewer with uid %s: %s", uid, err))
-	}
 	// put the user in the database
-	query = "INSERT INTO creator VALUES($1, $2, $3, $4, $5)"
-	_, err = db.dbClient.Exec(query, uid, firstName, lastName, email, company)
+	query := "INSERT INTO creator VALUES($1, $2, $3, $4, $5)"
+	_, err := db.dbClient.Exec(query, uid, firstName, lastName, email, company)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error when adding user to the database: %s", err))
 	}
@@ -136,21 +128,13 @@ func (db database) GetCreator(uid string) (*core.Creator, error) {
 
 // NewStudy adds a new study in the database and returns the unique id of that study.
 func (db database) NewStudy(creatorId, videoKey string, req *core.StudyRequest) (int, error) {
-	// check if the study already exists
+	// no need to check if the study already exists because of key constraint
 	reviewCount, ageMax, ageMin := req.NumParticipants, req.MaxAge, req.MinAge
 	gender, race := req.Gender, req.Race
 	eegHeadset, eyeTracking := req.Eeg, req.EyeTracking
-	var temp int
-	query := "SELECT creator_id FROM study WHERE creatorId = $1 AND videoKey = $2"
-	err := db.dbClient.QueryRow(query, creatorId, videoKey).Scan(&temp)
-	if err != sql.ErrNoRows {
-		return -1, errors.New("A study with that creator and video already exists")
-	} else if err != nil {
-		return -1, errors.New("An error occured when querying the database")
-	}
 
-	query = "INSERT INTO study VALUES(DEFAULT, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
-	_, err = db.dbClient.Exec(query, creatorId, videoKey, reviewCount, reviewCount, ageMax, ageMin, gender,
+	query := "INSERT INTO study VALUES(DEFAULT, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
+	_, err := db.dbClient.Exec(query, creatorId, videoKey, reviewCount, reviewCount, ageMax, ageMin, gender,
 		race, eegHeadset, eyeTracking)
 	if err != nil {
 		return -1, errors.New(fmt.Sprintf("Error when adding study to the database: %s", err))
@@ -259,18 +243,8 @@ func (db database) GetAllStudies(creatorId string) ([]*core.Study, error) {
 
 // NewReview adds a new review to the database.
 func (db database) NewReview(reviewerId, videoKey, creatorId, eeg core.EEGData, webcam core.WebcamData) error {
-	// check if the study already exists
-	var temp int
-	query := "SELECT reviewer_id FROM review WHERE reviewerId = $1 AND videoKey = $2"
-	err := db.dbClient.QueryRow(query, reviewerId, videoKey).Scan(&temp)
-	if err != sql.ErrNoRows {
-		return errors.New("A review with that reviewer and video already exists")
-	} else if err != nil {
-		return errors.New("An error occured when querying the database")
-	}
-
-	query = "INSERT INTO review VALUES($1, $2, $3, $4, $5)"
-	_, err = db.dbClient.Exec(query, reviewerId, videoKey, creatorId, eeg.Location, webcam.Location)
+	query := "INSERT INTO review VALUES($1, $2, $3, $4, $5)"
+	_, err := db.dbClient.Exec(query, reviewerId, videoKey, creatorId, eeg.Location, webcam.Location)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error when adding review to the database: %s", err))
 	}
@@ -286,7 +260,7 @@ func (db database) GetReviewJob(demo core.Demographics, hardware core.Hardware) 
 	// for build purposes
 	_ = hardware
 	var videoKey string
-	query := "SELECT video_key FROM study WHERE gender = $1 AND race = $2 AND AGE_MIN < $3 AND AGE_MAX > $3"
+	query := "SELECT video_key FROM study WHERE gender = $1 AND race = $2 AND age_min < $3 AND age_max > $3"
 	err := db.dbClient.QueryRow(query, demo.Gender, demo.Race, demo.Age).Scan(&videoKey)
 	if err == sql.ErrNoRows {
 		// TODO: Log the actual demographics in the error here for debugging purposes
