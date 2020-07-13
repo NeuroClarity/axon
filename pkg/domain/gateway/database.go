@@ -16,7 +16,7 @@ type Database interface {
 	GetCreator(uid string) (*core.Creator, error)
 
 	NewStudy(creatorId, videoKey string, request *core.StudyRequest) (int, error)
-	GetStudy(creatorId, videoKey string) (*core.Study, error)
+	GetStudy(uid int) (*core.Study, error)
 	GetAllStudies(creatorId string) ([]*core.Study, error)
 
 	NewReview(reviewerId, videoKey, creatorId, eeg core.EEGData, webcam core.WebcamData) error

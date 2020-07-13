@@ -8,7 +8,6 @@ import (
 
 	_ "github.com/lib/pq"
 
-	//"github.com/NeuroClarity/axon/pkg/domain/gateway"
 	"github.com/NeuroClarity/axon/pkg/domain/core"
 	"github.com/NeuroClarity/axon/pkg/domain/gateway"
 )
@@ -20,7 +19,7 @@ func NewDatabase(username, password, endpoint, port, dbName string) (gateway.Dat
 	if err != nil {
 		return nil, err
 	}
-	return &database{dbClient: db}, nil
+	return database{dbClient: db}, nil
 }
 
 type database struct {
@@ -31,14 +30,14 @@ type database struct {
 func (db database) NewReviewer(uid, firstName, lastName, email string, dem core.Demographics) error {
 	// check if demographics exist
 	var demographicsId int
-	query := "SELECT id FROM demographics WHERE gender = $1 AND race = $2 AND age = $3"
+	query := "SELECT uid FROM demographics WHERE gender = $1 AND race = $2 AND age = $3"
 	err := db.dbClient.QueryRow(query, dem.Gender, dem.Race, dem.Age).Scan(&demographicsId)
 	if err == sql.ErrNoRows {
-		db.dbClient.Exec("INSERT INTO demographics VALUES($1, $2, $3)", dem.Age, dem.Gender, dem.Race)
-		demographicsId, err = db.getCurrentIdFromTable("demographics_id_seq")
+		_, err = db.dbClient.Exec("INSERT INTO demographics VALUES(DEFAULT, $1, $2, $3)", dem.Age, dem.Gender, dem.Race)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Error when adding demographics to database: %s", err))
 		}
+		demographicsId, err = db.getCurrentIdFromTable("demographics_uid_seq")
 	}
 
 	// put the user in the database
@@ -56,7 +55,7 @@ func (db database) NewReviewer(uid, firstName, lastName, email string, dem core.
 func (db database) GetReviewer(uid string) (*core.Reviewer, error) {
 	var firstName, lastName, email string
 	var demographicsId int
-	query := "SELECT first_name, last_name, email, demographics_id FROM reviewers WHERE uid = $1"
+	query := "SELECT first_name, last_name, email, demographics_id FROM reviewer WHERE uid = $1"
 	err := db.dbClient.QueryRow(query, uid).Scan(&firstName, &lastName, &email, &demographicsId)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -66,7 +65,7 @@ func (db database) GetReviewer(uid string) (*core.Reviewer, error) {
 
 	var age int
 	var gender, race string
-	query = "SELECT age, gender, race FROM demographics WHERE id = $1"
+	query = "SELECT age, gender, race FROM demographics WHERE uid = $1"
 	err = db.dbClient.QueryRow(query, demographicsId).Scan(&age, &gender, &race)
 	if err == sql.ErrNoRows {
 		return nil, errors.New(fmt.Sprintf("Demographics with id %d does not exist", demographicsId))
@@ -150,25 +149,25 @@ func (db database) NewStudy(creatorId, videoKey string, req *core.StudyRequest) 
 		return -1, errors.New("An error occured when querying the database")
 	}
 
-	query = "INSERT INTO study VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
+	query = "INSERT INTO study VALUES(DEFAULT, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 	_, err = db.dbClient.Exec(query, creatorId, videoKey, reviewCount, reviewCount, ageMax, ageMin, gender,
 		race, eegHeadset, eyeTracking)
 	if err != nil {
 		return -1, errors.New(fmt.Sprintf("Error when adding study to the database: %s", err))
 	}
 
-	studyId, err := db.getCurrentIdFromTable("study_study_id_seq")
-	return studyId, nil
+	studyId, err := db.getCurrentIdFromTable("study_uid_seq")
+	return studyId, err
 }
 
 // GetStudy retreives a study by creatorID and videoKey
-func (db database) GetStudy(creatorId, videoKey string) (*core.Study, error) {
-	var gender, race string
+func (db database) GetStudy(uid int) (*core.Study, error) {
+	var creatorId, videoKey, gender, race string
 	var reviewCount, reviewsRemaining, ageMax, ageMin int
 	var eeg, eyeTracking bool
 
-	query := "SELECT review_count, reviews_remaining, age_max, age_min, gender, race, eeg_headset, eye_tracking FROM study WHERE creator_id = $1 AND video_key = $2"
-	err := db.dbClient.QueryRow(query, creatorId, videoKey).Scan(&reviewCount, &reviewsRemaining, &ageMax, &ageMin, &gender, &race, &eeg, &eyeTracking)
+	query := "SELECT creator_id, video_key, review_count, reviews_remaining, age_max, age_min, gender, race, eeg_headset, eye_tracking FROM study WHERE uid = $1"
+	err := db.dbClient.QueryRow(query, uid).Scan(&creatorId, &videoKey, &reviewCount, &reviewsRemaining, &ageMax, &ageMin, &gender, &race, &eeg, &eyeTracking)
 	if err == sql.ErrNoRows {
 		return nil, errors.New(fmt.Sprintf("There are no records with creator_id %s and video_key %s", creatorId, videoKey))
 	} else if err != nil {
@@ -304,11 +303,6 @@ func (db database) GetReviewJobByStudy(study *core.Study) (*core.ReviewJob, erro
 	return nil, nil
 }
 
-// TODO: Implement for Milestone #2 (user dashboard). I hate the name of this function (ha)
-func (db database) GetReviewerReviews(reviewerId string) ([]*core.Review, error) {
-	return nil, nil
-}
-
 func (db database) GetStudyReviews(creatorId, videoKey string) ([]*core.Review, error) {
 	var results []*core.Review
 
@@ -349,9 +343,16 @@ func (db database) GetStudyReviews(creatorId, videoKey string) ([]*core.Review, 
 func (db database) getCurrentIdFromTable(primaryKey string) (int, error) {
 	// get the newly generated uid
 	var uid int
-	err := db.dbClient.QueryRow("SELECT curval($1)", primaryKey).Scan(&uid)
+	err := db.dbClient.QueryRow("SELECT currval($1)", primaryKey).Scan(&uid)
 	if err != nil {
-		return -1, errors.New(fmt.Sprintf("Error occured when getting the unique id: %s", err))
+		// if there are no rows in the table return 1
+		var temp int
+		err := db.dbClient.QueryRow("SELECT uid FROM demographics LIMIT 1").Scan(&temp)
+		if err == sql.ErrNoRows {
+			return 1, nil
+		} else {
+			return -1, errors.New(fmt.Sprintf("Error occured when getting the unique id: %s", err))
+		}
 	}
 	return uid, nil
 }
