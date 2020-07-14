@@ -127,7 +127,7 @@ func (db database) GetCreator(uid string) (*core.Creator, error) {
 }
 
 // NewStudy adds a new study in the database and returns the unique id of that study.
-func (db database) NewStudy(creatorId, videoKey string, req *core.StudyRequest) (int, error) {
+func (db database) NewStudy(creatorId, videoKey string, req *core.TargetAudience) (int, error) {
 	// no need to check if the study already exists because of key constraint
 	reviewCount, ageMax, ageMin := req.NumParticipants, req.MaxAge, req.MinAge
 	gender, race := req.Gender, req.Race
@@ -172,7 +172,7 @@ func (db database) GetStudy(uid int) (*core.Study, error) {
 	study := core.Study{
 		UID:          uid,
 		NumRemaining: reviewsRemaining,
-		StudyRequest: &core.StudyRequest{
+		TargetAudience: &core.TargetAudience{
 			NumParticipants: reviewCount,
 			MinAge:          ageMin,
 			MaxAge:          ageMax,
@@ -222,7 +222,7 @@ func (db database) GetAllStudies(creatorId string) ([]*core.Study, error) {
 
 		study := core.Study{
 			NumRemaining: reviewsRemaining,
-			StudyRequest: &core.StudyRequest{
+			TargetAudience: &core.TargetAudience{
 				NumParticipants: reviewCount,
 				MinAge:          ageMin,
 				MaxAge:          ageMax,

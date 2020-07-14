@@ -1,7 +1,7 @@
 package core
 
-type StudyRequest struct {
-  NumParticipants int
+type TargetAudience struct {
+	NumParticipants int
 	MinAge          int
 	MaxAge          int
 	Gender          string

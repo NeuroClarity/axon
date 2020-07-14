@@ -43,7 +43,7 @@ func (rh *creatorHandler) Ping(w http.ResponseWriter, r *http.Request) {
 type CreateStudyRequest struct {
 	UID         string
 	VideoKey    string
-	Demographic core.StudyRequest
+	Demographic core.TargetAudience
 }
 
 type CreateStudyResponse struct {

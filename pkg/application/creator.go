@@ -6,7 +6,7 @@ import (
 )
 
 // creates a new study and returns the presigned URL for uploaded the content
-func CreateStudy(creatorId, videoKey string, request *core.StudyRequest, studyRepo repo.StudyRepository) (int, string, error) {
+func CreateStudy(creatorId, videoKey string, request *core.TargetAudience, studyRepo repo.StudyRepository) (int, string, error) {
 	return studyRepo.NewStudy(creatorId, videoKey, request)
 }
 
