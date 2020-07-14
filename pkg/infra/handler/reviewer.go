@@ -62,6 +62,7 @@ func (rh *reviewerHandler) AssignReviewJob(w http.ResponseWriter, r *http.Reques
 	fmt.Printf("%+v\n", rjr)
 
 	reviewer, err := rh.reviewerRepo.GetReviewer(rjr.ReviewerID)
+	fmt.Println(reviewer)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -218,7 +219,11 @@ func (rh *reviewerHandler) CheckForReviewer(next http.HandlerFunc) http.Handler 
 				return
 			}
 
-			demos := core.Demographics{}
+			demos := core.Demographics{
+				Gender: "male",
+				Age:    20,
+				Race:   "white",
+			}
 			rh.reviewerRepo.NewReviewer(uid, firstName, lastName, email, demos)
 		}
 		next.ServeHTTP(w, r)

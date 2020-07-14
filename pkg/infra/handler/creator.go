@@ -17,6 +17,7 @@ import (
 
 // CreatorHandler deals with operations in the Client context.
 type CreatorHandler interface {
+	Ping(w http.ResponseWriter, r *http.Request)
 	CreateStudy(w http.ResponseWriter, r *http.Request)
 	ViewStudy(w http.ResponseWriter, r *http.Request)
 	CheckForCreator(next http.HandlerFunc) http.Handler
@@ -31,6 +32,12 @@ type creatorHandler struct {
 // NewClientHandler is a factory for a ClientHandler.
 func NewCreatorHandler(cr repo.CreatorRepository, sr repo.StudyRepository) CreatorHandler {
 	return &creatorHandler{cr, sr}
+}
+
+func (rh *creatorHandler) Ping(w http.ResponseWriter, r *http.Request) {
+	ping := app.Ping()
+	fmt.Printf("ping\n")
+	fmt.Fprint(w, ping)
 }
 
 type CreateStudyRequest struct {
@@ -130,7 +137,7 @@ func (ch *creatorHandler) CheckForCreator(next http.HandlerFunc) http.Handler {
 		creator, err := ch.creatorRepo.GetCreator(uid)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		} else if creator != nil {
+		} else if creator == nil {
 			rawFirstName := user.(*jwt.Token).Claims.(jwt.MapClaims)["https://synapse.neuroclarity.ai/given_name"]
 			firstName, ok := rawFirstName.(string)
 			if !ok {

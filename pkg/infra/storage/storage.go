@@ -34,6 +34,7 @@ func (repo storage) GetVideoURL(videoKey string, expiration time.Duration) (stri
 }
 
 func (repo storage) GetVideoUploadURL(videoKey string, expiration time.Duration) (string, error) {
+	fmt.Println(videoKey)
 	return repo.getPresignedURLForUpload(videoKey, VIDEO_BUCKET, expiration)
 }
 

@@ -153,7 +153,7 @@ func (db database) GetStudy(uid int) (*core.Study, error) {
 	query := "SELECT creator_id, video_key, review_count, reviews_remaining, age_max, age_min, gender, race, eeg_headset, eye_tracking FROM study WHERE uid = $1"
 	err := db.dbClient.QueryRow(query, uid).Scan(&creatorId, &videoKey, &reviewCount, &reviewsRemaining, &ageMax, &ageMin, &gender, &race, &eeg, &eyeTracking)
 	if err == sql.ErrNoRows {
-		return nil, errors.New(fmt.Sprintf("There are no records with creator_id %s and video_key %s", creatorId, videoKey))
+		return nil, errors.New(fmt.Sprintf("There are no studies with uid %d", uid))
 	} else if err != nil {
 		return nil, errors.New(fmt.Sprintf("Error occured when querying the study table"))
 	}
@@ -170,6 +170,7 @@ func (db database) GetStudy(uid int) (*core.Study, error) {
 	}
 
 	study := core.Study{
+		UID:          uid,
 		NumRemaining: reviewsRemaining,
 		StudyRequest: &core.StudyRequest{
 			NumParticipants: reviewCount,
@@ -186,6 +187,7 @@ func (db database) GetStudy(uid int) (*core.Study, error) {
 			VideoLocation: videoKey,
 		},
 	}
+	fmt.Println(study)
 
 	return &study, nil
 }
@@ -260,7 +262,7 @@ func (db database) GetReviewJob(demo core.Demographics, hardware core.Hardware) 
 	// for build purposes
 	_ = hardware
 	var videoKey string
-	query := "SELECT video_key FROM study WHERE gender = $1 AND race = $2 AND age_min < $3 AND age_max > $3"
+	query := "SELECT video_key FROM study WHERE gender = $1 AND race = $2 AND age_min < $3 AND age_max > $3 AND reviews_remaining > 0"
 	err := db.dbClient.QueryRow(query, demo.Gender, demo.Race, demo.Age).Scan(&videoKey)
 	if err == sql.ErrNoRows {
 		// TODO: Log the actual demographics in the error here for debugging purposes

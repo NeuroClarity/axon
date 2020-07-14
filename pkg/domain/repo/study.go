@@ -24,11 +24,11 @@ type studyRepository struct {
 
 // Returns the studyId, presignedURl to upload study content and error if applicable
 func (repo *studyRepository) NewStudy(creatorId, videoKey string, request *core.StudyRequest) (int, string, error) {
-	studyId, err := repo.database.NewStudy(creatorId, videoKey, request)
+	url, err := repo.storage.GetVideoUploadURL(videoKey, URL_EXPIRATION)
 	if err != nil {
 		return -1, "", err
 	}
-	url, err := repo.storage.GetVideoUploadURL(videoKey, URL_EXPIRATION)
+	studyId, err := repo.database.NewStudy(creatorId, videoKey, request)
 	return studyId, url, nil
 }
 

@@ -21,8 +21,7 @@ type reviewerRepository struct {
 
 // GetReviewer retrieves a Reviewer from persistence.
 func (repo *reviewerRepository) GetReviewer(uid string) (*core.Reviewer, error) {
-	return &core.Reviewer{UID: "foo|123", FirstName: "John", LastName: "Smith", Email: "john@hotmail.net", Demographics: core.Demographics{Age: 50, Gender: "male", Race: "black"}}, nil
-	// return repo.database.GetReviewer(uid)
+	return repo.database.GetReviewer(uid)
 }
 
 // AddReviewJob adds a ReviewJob to a Reviewer to be persisted.
